@@ -18,17 +18,17 @@ async function connect(): Promise<ReturnType<typeof createClient>> {
     return client;
 }
 
-async function reset(account: string): Promise<void> {
-    const client = await connect();
+type RedisClient = ReturnType<typeof createClient>;
+
+async function reset(client: RedisClient, account: string): Promise<void> {
     try {
         await client.set(`${account}/balance`, DEFAULT_BALANCE);
-    } finally {
-        await client.disconnect();
+    } catch (e) {
+        console.log("error while resetting account balance due to ", String(e));
     }
 }
 
-async function charge(account: string, charges: number): Promise<ChargeResult> {
-    const client = await connect();
+async function charge(client: RedisClient, account: string, charges: number): Promise<ChargeResult | undefined> {
     try {
         const balance = parseInt((await client.get(`${account}/balance`)) ?? "");
         if (balance >= charges) {
@@ -38,18 +38,19 @@ async function charge(account: string, charges: number): Promise<ChargeResult> {
         } else {
             return { isAuthorized: false, remainingBalance: balance, charges: 0 };
         }
-    } finally {
-        await client.disconnect();
+    } catch (e) {
+        console.log("error while charging account due to ", String(e));
     }
 }
 
-export function buildApp(): express.Application {
+export async function buildApp(): Promise<express.Application> {
     const app = express();
     app.use(json());
+    const redisClient = await connect();
     app.post("/reset", async (req, res) => {
         try {
             const account = req.body.account ?? "account";
-            await reset(account);
+            await reset(redisClient, account);
             console.log(`Successfully reset account ${account}`);
             res.sendStatus(204);
         } catch (e) {
@@ -60,7 +61,7 @@ export function buildApp(): express.Application {
     app.post("/charge", async (req, res) => {
         try {
             const account = req.body.account ?? "account";
-            const result = await charge(account, req.body.charges ?? 10);
+            const result = await charge(redisClient, account, req.body.charges ?? 10);
             console.log(`Successfully charged account ${account}`);
             res.status(200).json(result);
         } catch (e) {
