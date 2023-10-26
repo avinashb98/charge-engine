@@ -17,11 +17,12 @@ const client = createClient({ url });
 async function reset(account: string): Promise<void> {
     try {
         await client.set(`${account}/balance`, DEFAULT_BALANCE);
-    } finally {
+    } catch (e) {
+        console.log("Error while resetting account balance due to ", String(e));
     }
 }
 
-async function charge(account: string, charges: number): Promise<ChargeResult> {
+async function charge(account: string, charges: number): Promise<ChargeResult | undefined> {
     try {
         const balance = parseInt((await client.get(`${account}/balance`)) ?? "");
         if (balance >= charges) {
@@ -31,7 +32,8 @@ async function charge(account: string, charges: number): Promise<ChargeResult> {
         } else {
             return { isAuthorized: false, remainingBalance: balance, charges: 0 };
         }
-    } finally {
+    } catch (e) {
+        console.log("Error while resetting account balance due to ", String(e));
     }
 }
 
