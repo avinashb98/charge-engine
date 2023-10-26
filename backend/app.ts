@@ -69,7 +69,6 @@ export async function buildApp(): Promise<express.Application> {
                 return;
             }
             charges = Number.parseInt(charges, 10);
-            console.log({ charges });
             if (Number.isNaN(charges)) {
                 res.status(400).json({
                     error: "invalid charge in input",
