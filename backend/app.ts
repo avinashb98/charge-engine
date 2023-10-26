@@ -18,7 +18,6 @@ async function reset(account: string): Promise<void> {
     try {
         await client.set(`${account}/balance`, DEFAULT_BALANCE);
     } finally {
-        await client.disconnect();
     }
 }
 
