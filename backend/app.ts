@@ -75,7 +75,7 @@ export async function buildApp(): Promise<express.Application> {
                 });
                 return;
             }
-            const result = await charge(redisClient, account, req.body.charges ?? 10);
+            const result = await charge(redisClient, account, charges);
             console.log(`Successfully charged account ${account}`);
             res.status(200).json(result);
         } catch (e) {
