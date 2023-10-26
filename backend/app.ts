@@ -59,22 +59,22 @@ export async function buildApp(): Promise<express.Application> {
         }
     });
     app.post("/charge", async (req, res) => {
+        const account = req.body.account ?? "account";
+        let charges = req.body.charges;
+        if (!charges) {
+            res.status(400).json({
+                error: "missing charge in input",
+            });
+            return;
+        }
+        charges = Number.parseInt(charges, 10);
+        if (Number.isNaN(charges)) {
+            res.status(400).json({
+                error: "invalid charge in input",
+            });
+            return;
+        }
         try {
-            const account = req.body.account ?? "account";
-            let charges = req.body.charges;
-            if (!charges) {
-                res.status(400).json({
-                    error: "missing charge in input",
-                });
-                return;
-            }
-            charges = Number.parseInt(charges, 10);
-            if (Number.isNaN(charges)) {
-                res.status(400).json({
-                    error: "invalid charge in input",
-                });
-                return;
-            }
             const result = await charge(redisClient, account, charges);
             console.log(`Successfully charged account ${account}`);
             res.status(200).json(result);
