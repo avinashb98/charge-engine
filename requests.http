@@ -12,5 +12,25 @@ Content-Type: application/json
 
 {
     "account": "test",
+    "charges": "15" 
+}
+
+###
+# @name InvalidCharge
+POST http://localhost:3000/charge
+Content-Type: application/json
+
+{
+    "account": "test",
     "charges": "a" 
+}
+
+
+###
+# @name MissingCharge
+POST http://localhost:3000/charge
+Content-Type: application/json
+
+{
+    "account": "test"
 }
