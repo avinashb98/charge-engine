@@ -10,16 +10,11 @@ interface ChargeResult {
     charges: number;
 }
 
-async function connect(): Promise<ReturnType<typeof createClient>> {
-    const url = `redis://${process.env.REDIS_HOST ?? "localhost"}:${process.env.REDIS_PORT ?? "6379"}`;
-    console.log(`Using redis URL ${url}`);
-    const client = createClient({ url });
-    await client.connect();
-    return client;
-}
+// Create a single Redis client instance
+const url = `redis://${process.env.REDIS_HOST ?? "localhost"}:${process.env.REDIS_PORT ?? "6379"}`;
+const client = createClient({ url });
 
 async function reset(account: string): Promise<void> {
-    const client = await connect();
     try {
         await client.set(`${account}/balance`, DEFAULT_BALANCE);
     } finally {
@@ -28,7 +23,6 @@ async function reset(account: string): Promise<void> {
 }
 
 async function charge(account: string, charges: number): Promise<ChargeResult> {
-    const client = await connect();
     try {
         const balance = parseInt((await client.get(`${account}/balance`)) ?? "");
         if (balance >= charges) {
@@ -39,7 +33,6 @@ async function charge(account: string, charges: number): Promise<ChargeResult> {
             return { isAuthorized: false, remainingBalance: balance, charges: 0 };
         }
     } finally {
-        await client.disconnect();
     }
 }
 
